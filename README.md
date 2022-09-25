@@ -1,57 +1,58 @@
-cp-time-series
-==============================
+ Разработка модели наукастинга для прогнозирования месячного ИПЦ на основе данных о ценах в интернет магазинах
 
-Time series analysis for inflaiction
+Команда: *Young Stars*
 
-Project Organization
-------------
+Кейсодержатель: Центральный банк Российской
+Федерации (Банк России)
 
-    ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
-    ├── README.md          <- The top-level README for developers using this project.
-    ├── data
-    │   ├── external       <- Data from third party sources.
-    │   ├── interim        <- Intermediate data that has been transformed.
-    │   ├── processed      <- The final, canonical data sets for modeling.
-    │   └── raw            <- The original, immutable data dump.
-    │
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
-    │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
-    │
-    ├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-    │                         the creator's initials, and a short `-` delimited description, e.g.
-    │                         `1.0-jqp-initial-data-exploration`.
-    │
-    ├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-    │
-    ├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-    │   └── figures        <- Generated graphics and figures to be used in reporting
-    │
-    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-    │                         generated with `pip freeze > requirements.txt`
-    │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── src                <- Source code for use in this project.
-    │   ├── __init__.py    <- Makes src a Python module
-    │   │
-    │   ├── data           <- Scripts to download or generate data
-    │   │   └── make_dataset.py
-    │   │
-    │   ├── features       <- Scripts to turn raw data into features for modeling
-    │   │   └── build_features.py
-    │   │
-    │   ├── models         <- Scripts to train models and then use trained models to make
-    │   │   │                 predictions
-    │   │   ├── predict_model.py
-    │   │   └── train_model.py
-    │   │
-    │   └── visualization  <- Scripts to create exploratory and results oriented visualizations
-    │       └── visualize.py
-    │
-    └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
+## Постановка задачи
+
+На основе открытых микроданных о потре-
+бительских ценах, собранных посредством
+веб-скрейпинга интернет-магазинов Мо-
+сковской области (Московского региона),
+создать модель наукастинга на базе мето-
+дов машинного обучения, позволяющую
+формировать краткосрочный (на горизон-
+те 1-2 месяцев) прогноз месячного ИПЦ в
+режиме реального времени.
+
+## Описание данных
+
+Предоставлен следующий массив данных:
+
+| Название поля | Описание |
+| --- | --- |
+|WebPriceId | Уникальный номер товара/услуги|
+|DateObserve | Дата наблюдения|
+|StockStatus | Статус товара/услуги на дату наблюдения (InStock – в продаже, OutOfStock – отсутствует в продаже)
+|CurrentPrice | Цена товара/услуги на дату наблюдения (Если StockStatus = OutOfStock – значение отсутсвует) |
+
+## Описание решения
+
+Мы пытались рассмотреть решение с разных сторон. 
+
+- Сначала мы реализовали алгоритм Росстата - брали ИПЦ по товарам и потом среднее от них. MSE было 0.84, но нам было этого недостаточно.
+- Мы придумали сложный пайплайн
 
 
---------
 
-<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+    В задании говорится, что прогноз должен быть основан на данных за прогнозируемый месяц (т.е. если мы прогнозируем сентябрь, то учитывать данные начиная с первого сентября) и данных за весь предыдущий период.
+
+    Вот что я предлагаю сделать:
+    Чтобы учесть текущие данные за месяц мы
+    1) делим на кластеры имеющиеся ряды
+    2) считаем среднюю цену для кластеров в начале месяца и в день n. Делим последнее на первое - получаем ИПЦ для группы товаров. За период от 0 до дня n. Если бы хотели получить их как оценку месяца - можно домножить на 30/n.
+
+    3) Чтобы учесть данные за прошлые месяцы - можно построить ариму по уже имеющимся значениям ИПЦ за прошлые месяцы
+
+    Направить вывод 2 и 3 в модель регрессии \ xgboost \ что-то другое и научить ее предсказывать на основании ИПЦ по кластерам и ожидаемому из истории ИПЦ индекс ИПЦ на конец этого месяца
+
+    - В итоге мы не успели реализовать этот пайплайн, но мы думаем, что он должен давать хороший результат.
+    - Мы использовали стохастический подход для оригинального алгоритма и улучшили MSE до 0.5
+
+## Young Stars - это мы!
+- Алина Лебедева - ML специалист
+- Леша Кругликов - full stack разработчик
+- Мария Антонова - Дизайнер
+- Михаил Усатюк - product manager
